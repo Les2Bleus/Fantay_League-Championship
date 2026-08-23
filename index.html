@@ -116,35 +116,64 @@ function addFixture(){const round=+$('#fixRound').value,a=$('#fixA').value.trim(
 function addEventRow(container,type){const labels={goal:'득점',assist:'도움',save:'선방'};const d=document.createElement('div');d.className='eventRow';d.innerHTML=`<input list="players" placeholder="선수 이름"><input type="number" min="1" value="1" aria-label="${labels[type]} 수"><button class="danger">삭제</button>`;d.querySelector('button').onclick=()=>d.remove();$('#'+container).append(d)}
 function readEvents(container,type){return [...$('#'+container).querySelectorAll('.eventRow')].map(r=>{const [p,v]=r.querySelectorAll('input');return {type,player:p.value.trim(),value:+v.value||0}}).filter(x=>x.player&&x.value>0)}
 function renderResults(){
-  const r=[...state.leagueResults].map((x,i)=>({...x,_index:i})).reverse();
+  const r=[...state.leagueResults]
+    .map((x,i)=>({...x,_index:i}))
+    .reverse();
+
   $('#leagueResults').innerHTML=r.length
-    ?r.map(x=>`<div class="result"><div>${leagueTeamLogo(x.a)?`<img class="leagueTeamLogo" src="${leagueTeamLogo(x.a)}" alt="">`:''}<b>${esc(x.a)}</b> <span class="gold">${x.as} : ${x.bs}</span> ${leagueTeamLogo(x.b)?`<img class="leagueTeamLogo" src="${leagueTeamLogo(x.b)}" alt="">`:''}<b>${esc(x.b)}</b> <span class="small">· ${x.round}R</span> <span class="adminOnly"><button class="danger" onclick="deleteLeagueResult(${x._index})">경기 결과 삭제</button></span></div>${(x.events||[]).map(e=>`<div class="small">${e.type==='goal'?'⚽':e.type==='assist'?'🎯':'🧤'} ${esc(e.player)} ${e.value}</div>`).join('')}${x.mom?`<div class="small">⭐ MOM: ${esc(x.mom)}</div>`:''}</div>`).join('')
+    ?r.map(x=>`
+      <div class="result">
+        <div>
+          ${leagueTeamLogo(x.a)?`<img class="leagueTeamLogo" src="${leagueTeamLogo(x.a)}" alt="">`:''}
+          <b>${esc(x.a)}</b>
+          <span class="gold">${x.as} : ${x.bs}</span>
+          ${leagueTeamLogo(x.b)?`<img class="leagueTeamLogo" src="${leagueTeamLogo(x.b)}" alt="">`:''}
+          <b>${esc(x.b)}</b>
+          <span class="small">· ${x.round}R</span>
+          <span class="adminOnly">
+            <button class="danger" onclick="deleteLeagueResult(${x._index})">경기 결과 삭제</button>
+          </span>
+        </div>
+        ${(x.events||[]).map(e=>`
+          <div class="small">${e.type==='goal'?'⚽':e.type==='assist'?'🎯':'🧤'} ${esc(e.player)} ${e.value}</div>
+        `).join('')}
+        ${x.mom?`<div class="small">⭐ MOM: ${esc(x.mom)}</div>`:''}
+      </div>
+    `).join('')
     :'<div class="small">등록된 경기 결과가 없습니다.</div>';
 }
 
 function recalculateLeague(){
-  state.teams.forEach(t=>{t[1]=0;t[2]=0;t[3]=0;t[4]=0;t[5]=0});
+  state.teams.forEach(t=>{
+    t[1]=0;t[2]=0;t[3]=0;t[4]=0;t[5]=0;
+  });
+
   state.stats={goals:[],assists:[],saves:[]};
   state.mom=[];
 
   state.leagueResults.forEach(result=>{
     applyStandingResult(result.a,result.b,result.as,result.bs);
+
     (result.events||[]).forEach(e=>{
       const key=e.type==='goal'?'goals':e.type==='assist'?'assists':'saves';
       state.stats[key].push({player:e.player,value:e.value});
     });
-    if(result.mom)state.mom.push({player:result.mom,value:1});
+
+    if(result.mom){
+      state.mom.push({player:result.mom,value:1});
+    }
   });
 
   state.round=state.leagueResults.length
-    ?Math.max(...state.leagueResults.map(x=>+x.round||0))
+    ?Math.max(...state.leagueResults.map(x=>Number(x.round)||0))
     :0;
 }
 
 function deleteLeagueResult(index){
   const result=state.leagueResults[index];
   if(!result)return;
-  if(!confirm(`${result.a} ${result.as}:${result.bs} ${result.b} 경기 결과를 삭제하시겠습니까?\n삭제하면 순위와 개인 기록도 자동으로 다시 계산됩니다.`))return;
+
+  if(!confirm(`${result.a} ${result.as}:${result.bs} ${result.b} 경기 결과를 삭제하시겠습니까?\n\n삭제하면 순위와 개인 기록도 자동으로 다시 계산됩니다.`))return;
 
   state.leagueResults.splice(index,1);
   recalculateLeague();
@@ -152,6 +181,7 @@ function deleteLeagueResult(index){
   render();
   toast('경기 결과가 삭제되었습니다.');
 }
+
 function applyStandingResult(a,b,as,bs){const ta=state.teams.find(t=>t[0]===a),tb=state.teams.find(t=>t[0]===b);if(!ta||!tb)return;ta[5]+=as-bs;tb[5]+=bs-as;if(as>bs){ta[1]++;tb[3]++;ta[4]+=3}else if(bs>as){tb[1]++;ta[3]++;tb[4]+=3}else{ta[2]++;tb[2]++;ta[4]++;tb[4]++}state.teams.sort((x,y)=>y[4]-x[4]||y[5]-x[5]||y[1]-x[1])}
 function saveLeagueResult(){const a=$('#rA').value,b=$('#rB').value;let as=+$('#rAS').value,bs=+$('#rBS').value;const forfeit=$('#rForfeit').value,round=+$('#rRound').value||state.round;if(forfeit==='a'){as=0;bs=3}else if(forfeit==='b'){as=3;bs=0};if(!a||!b||a===b||Number.isNaN(as)||Number.isNaN(bs))return toast('서로 다른 두 팀과 스코어를 선택하세요.');const events=[...readEvents('goalInputs','goal'),...readEvents('assistInputs','assist'),...readEvents('saveInputs','save')];state.leagueResults.push({a,b,as,bs,round,events,mom:$('#rMom').value.trim()});applyStandingResult(a,b,as,bs);state.round=Math.max(state.round,round);events.forEach(e=>state.stats[e.type==='goal'?'goals':e.type==='assist'?'assists':'saves'].push({player:e.player,value:e.value}));if($('#rMom').value.trim())state.mom.push({player:$('#rMom').value.trim(),value:1});['#rAS','#rBS','#rRound','#rMom'].forEach(s=>$(s).value='');['goalInputs','assistInputs','saveInputs'].forEach(id=>$('#'+id).innerHTML='');save();toast('경기 결과가 저장되었습니다.')}
 function aggregate(list){const m={};list.forEach(x=>m[x.player]=(m[x.player]||0)+(+x.value||0));return Object.entries(m).map(([player,value])=>({player,value})).sort((a,b)=>b.value-a.value||a.player.localeCompare(b.player,'ko'))}
