@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Fantasy League Championship</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, "Malgun Gothic", sans-serif;
+  background: #f4f5f7;
+  color: #111;
+}
+
+header {
+  background: #121826;
+  color: white;
+  padding: 25px 20px;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+header p {
+  margin: 8px 0 0;
+  color: #bfc7d5;
+}
+
+nav {
+  background: white;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+nav button {
+  border: none;
+  background: #e9edf3;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+nav button:hover,
+nav button.active {
+  background: #121826;
+  color: white;
+}
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+}
+
+.section {
+  display: none;
+}
+
+.section.active {
+  display: block;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+h2 {
+  margin-top: 0;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+th {
+  background: #121826;
+  color: white;
+}
+
+th, td {
+  padding: 12px 10px;
+  text-align: center;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+tr:hover {
+  background: #f7f8fa;
+}
+
+.rank {
+  font-weight: bold;
+}
+
+.rank-1 {
+  background: #fff3cd;
+}
+
+.rank-2 {
+  background: #e9ecef;
+}
+
+.rank-3 {
+  background: #f8e0d5;
+}
+
+.stat-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.stat-card h3 {
+  margin-top: 0;
+}
+
+.player-row {
+  padding: 9px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.player-row:last-child {
+  border-bottom: none;
+}
+
+.cup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 15px;
+}
+
+.match {
+  background: white;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.match-number {
+  font-size: 13px;
+  color: #777;
+  margin-bottom: 10px;
+}
+
+.team {
+  font-weight: bold;
+  padding: 7px 0;
+}
+
+.vs {
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+}
+
+.auto {
+  margin-top: 10px;
+  background: #e8f7ed;
+  color: #16803c;
+  padding: 8px;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.home-box {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.home-box h2 {
+  font-size: 30px;
+}
+
+.home-stats {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.home-stat {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  min-width: 180px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.home-stat strong {
+  display: block;
+  font-size: 28px;
+  margin-bottom: 5px;
+}
+
+footer {
+  text-align: center;
+  padding: 30px;
+  color: #777;
+}
+
+@media (max-width: 600px) {
+  header h1 {
+    font-size: 22px;
+  }
+
+  nav button {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .container {
+    padding: 12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>⚽ Fantasy League Championship</h1>
+  <p>League · Onstain Cup · LF CUP</p>
+</header>
+
+<nav>
+  <button class="tab active" onclick="showSection('home', this)">홈</button>
+  <button class="tab" onclick="showSection('league', this)">🏆 리그</button>
+  <button class="tab" onclick="showSection('goals', this)">⚽ 득점</button>
+  <button class="tab" onclick="showSection('assists', this)">🎯 도움</button>
+  <button class="tab" onclick="showSection('saves', this)">🧤 선방</button>
+  <button class="tab" onclick="showSection('lfcup', this)">🏆 LF CUP</button>
+</nav>
+
+<div class="container">
+
+<!-- 홈 -->
+
+<section id="home" class="section active">
+
+<div class="home-box">
+
+<h2>🏆 Fantasy League Championship</h2>
+
+<p>2026 시즌 · 현재 리그 20라운드</p>
+
+<div class="home-stats">
+
+<div class="home-stat">
+<strong>20</strong>
+현재 라운드
+</div>
+
+<div class="home-stat">
+<strong>14</strong>
+리그 참가팀
+</div>
+
+<div class="home-stat">
+<strong>3</strong>
+대회
+</div>
+
+<div class="home-stat">
+<strong>16강</strong>
+LF CUP
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- 리그 -->
+
+<section id="league" class="section">
+
+<div class="card">
+
+<h2>🏆 20라운드 전체 리그 순위</h2>
+
+<div class="table-wrapper">
+
+<table>
+
+<thead>
+<tr>
+<th>순위</th>
+<th>팀</th>
+<th>승</th>
+<th>무</th>
+<th>패</th>
+<th>경기</th>
+<th>승점</th>
+<th>골득실</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr class="rank-1">
+<td>1</td>
+<td>FC Orchestra</td>
+<td>15</td>
+<td>4</td>
+<td>1</td>
+<td>20</td>
+<td>49</td>
+<td>+27</td>
+</tr>
+
+<tr class="rank-2">
+<td>2</td>
+<td>서쪽햄 UTD</td>
+<td>15</td>
+<td>3</td>
+<td>2</td>
+<td>20</td>
+<td>48</td>
+<td>+20</td>
+</tr>
+
+<tr class="rank-3">
+<td>3</td>
+<td>Declema FC</td>
+<td>11</td>
+<td>4</td>
+<td>5</td>
+<td>20</td>
+<td>37</td>
+<td>+16</td>
+</tr>
+
+<tr>
+<td>4</td>
+<td>Only Reds</td>
+<td>9</td>
+<td>9</td>
+<td>2</td>
+<td>20</td>
+<td>36</td>
+<td>+12</td>
+</tr>
+
+<tr>
+<td>5</td>
+<td>둠스데이</td>
+<td>11</td>
+<td>3</td>
+<td>6</td>
+<td>20</td>
+<td>36</td>
+<td>+9</td>
+</tr>
+
+<tr>
+<td>6</td>
+<td>진석FC</td>
+<td>8</td>
+<td>6</td>
+<td>6</td>
+<td>20</td>
+<td>30</td>
+<td>+2</td>
+</tr>
+
+<tr>
+<td>7</td>
+<td>스파이더맨</td>
+<td>8</td>
+<td>5</td>
+<td>7</td>
+<td>20</td>
+<td>29</td>
+<td>+5</td>
+</tr>
+
+<tr>
+<td>8</td>
+<td>카치리요</td>
+<td>7</td>
+<td>6</td>
+<td>7</td>
+<td>20</td>
+<td>27</td>
+<td>-5</td>
+</tr>
+
+<tr>
+<td>9</td>
+<td>Villans</td>
+<td>7</td>
+<td>4</td>
+<td>9</td>
+<td>20</td>
+<td>25</td>
+<td>+7</td>
+</tr>
+
+<tr>
+<td>10</td>
+<td>FC 팝팝</td>
+<td>6</td>
+<td>3</td>
+<td>11</td>
+<td>20</td>
+<td>21</td>
+<td>-11</td>
+</tr>
+
+<tr>
+<td>11</td>
+<td>산초 HD</td>
+<td>6</td>
+<td>3</td>
+<td>11</td>
+<td>20</td>
+<td>21</td>
+<td>-17</td>
+</tr>
+
+<tr>
+<td>12</td>
+<td>문덜랜드 AFC</td>
+<td>2</td>
+<td>4</td>
+<td>14</td>
+<td>20</td>
+<td>10</td>
+<td>-13</td>
+</tr>
+
+<tr>
+<td>13</td>
+<td>FC Noss</td>
+<td>1</td>
+<td>7</td>
+<td>12</td>
+<td>20</td>
+<td>10</td>
+<td>-20</td>
+</tr>
+
+<tr>
+<td>14</td>
+<td>훔바 UTD</td>
+<td>0</td>
+<td>7</td>
+<td>13</td>
+<td>20</td>
+<td>7</td>
+<td>-41</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- 득점 -->
+
+<section id="goals" class="section">
+
+<div class="card">
+
+<h2>⚽ 20라운드 전체 득점 순위</h2>
+
+<div class="player-row"><strong>1위</strong> 기라시 — 28골</div>
+<div class="player-row"><strong>2위</strong> 에키티케 — 27골</div>
+<div class="player-row"><strong>3위</strong> 이삭 — 26골</div>
+<div class="player-row"><strong>4위</strong> 홀란 — 23골</div>
+<div class="player-row"><strong>5위</strong> 서진석 — 21골</div>
+<div class="player-row"><strong>6위</strong> 블라호비치 — 20골</div>
+<div class="player-row"><strong>7위</strong> 칼럼 윌슨 — 18골</div>
+<div class="player-row"><strong>8위</strong> 세슈코 — 17골</div>
+<div class="player-row"><strong>9위</strong> 고든 — 16골</div>
+<div class="player-row"><strong>10위</strong> 구아구아, 브로비 — 15골</div>
+<div class="player-row"><strong>11위</strong> 왓킨스 — 13골</div>
+<div class="player-row"><strong>12위</strong> 난툼보, 요케레스, 마네 — 10골</div>
+<div class="player-row"><strong>13위</strong> 잭슨, 크리스 리그, 오시멘 — 9골</div>
+<div class="player-row"><strong>14위</strong> 바르콜라, 브레레톤 디아스, 가비 — 8골</div>
+<div class="player-row"><strong>15위</strong> 가르나초, 마샬, 카마르다 — 7골</div>
+<div class="player-row"><strong>16위</strong> 넬슨, 마테타, 오펜다, 일디즈, 부엔디아, 케인, 호날두 JR — 6골</div>
+<div class="player-row"><strong>17위</strong> 그린우드, 음뵈모, 사이바리, 주앙 페드로, 미토미, 루이스 디아스, 맥토미니, 헐크 — 5골</div>
+<div class="player-row"><strong>18위</strong> 에릭, 카바니, 귈러, 소보슬러이 — 4골</div>
+
+<div class="player-row">
+<strong>19위 — 3골</strong><br>
+레앙, 루이스 수아레스, 루카쿠, 마르코스 요렌테, 마운트, 맥알리스터, 산초, 셈스딘 탈비, 얀 디오망데, 에제, 엘랑가, 이스테방, 카마다, 콜 파머, 쿠보, 피실리, 덩크, 올리세, 니코 윌리엄스, 데오도라키스
+</div>
+
+<div class="player-row">
+<strong>20위 — 2골</strong><br>
+라포르테, 마르무시, 마티스 텔, 맥케니, 바디, 보니페이스, 서머빌, 시메오네, 오바메양, 우스만 디오망데, 조엘린통, 카이 루니, 트라오레, 페란 토레스, 프라테시, 하위손, 가스통, 모건 깁스화이트, 쇠렌센, 소우체크, 각포, 레인더러스, 로슨 선덜랜드, 호드리구, 호세이니, 탈비, 워드-프라우스, 셰르키, 쿠티뉴
+</div>
+
+<div class="player-row">
+<strong>21위 — 1골</strong><br>
+가브리엘 치아구, 기튼스, 도쿠, 디오망데, 레오나르두, 레이시, 루크먼, 마테우스 페르난데스, 민테, 베르네, 보언, 솔로트, 시마칸, 아마드, 아센시오, 올모, 이동경, 이스코, 이케르 발데스, 이호재, 자케, 조규성, 찰하놀루, 체레머신, 촐리스, 치도 오비 마틴, 코네, 쿨리발리, 키미히, 파블로 바리오스, 파초, 프랑코, 하피냐, 슈티파노비치, 브루노 페르난데스, 마르게티, 아데예미, 케레셀리제
+</div>
+
+</div>
+
+</section>
+
+
+<!-- 도움 -->
+
+<section id="assists" class="section">
+
+<div class="card">
+
+<h2>🎯 20라운드 전체 도움 순위</h2>
+
+<div class="player-row"><strong>1위</strong> 주앙 페드로 — 27도움</div>
+<div class="player-row"><strong>2위</strong> 사이바리, 귈러 — 13도움</div>
+<div class="player-row"><strong>3위</strong> 피실리 — 12도움</div>
+<div class="player-row"><strong>4위</strong> 부엔디아, 브로비, 브루노 페르난데스 — 11도움</div>
+<div class="player-row"><strong>5위</strong> 각포, 도쿠, 호드리구 — 10도움</div>
+<div class="player-row"><strong>6위</strong> 고든, 난툼보, 리스 제임스, 미토미, 올모, 쿠보, 트라오레 — 9도움</div>
+<div class="player-row"><strong>7위</strong> 니코 윌리엄스, 소보슬러이, 셰르키, 아데예미, 왓킨스 — 8도움</div>
+<div class="player-row"><strong>8위</strong> 래시포드, 레이시, 발데, 아마드, 올리세, 콜 파머 — 7도움</div>
+<div class="player-row"><strong>9위</strong> 가비, 워드-프라우스, 케인, 프림퐁 — 6도움</div>
+<div class="player-row"><strong>10위</strong> 마두에케, 마티스 텔, 엘랑가, 펠릭스, 기라시, 음뵈모 — 5도움</div>
+
+<div class="player-row">
+<strong>11위 — 4도움</strong><br>
+그린우드, 기마랑이스, 다비드 마르티네스, 루카쿠, 루크먼, 만타토, 세슈코, 셈스딘 탈비, 쇠렌센, 에제, 카마다, 칸셀루, 파케타, 하피냐
+</div>
+
+<div class="player-row">
+<strong>12위 — 3도움</strong><br>
+가르나초, 넬슨, 누사, 모건 깁스화이트, 무키엘레, 민테, 바르콜라, 솔로트, 아센시오, 알렉스 스콧, 이스코, 이스테방, 이호재, 조엘린통, 촐리스, 카레라스, 크리스 리그, 페드로 포로, 프라테시, 하메스 로드리게스, 호드리구 모라, 모라
+</div>
+
+<div class="player-row">
+<strong>13위 — 2도움</strong><br>
+구아구아, 기성용, 디아스, 디오망데, 레오나르두, 루이스 디아스, 마르무시, 무뇨즈, 보언, 산초, 서머빌, 서진석, 스털링, 시메오네, 아놀드, 요케레스, 이삭, 일디즈, 제드 스펜스, 파티, 페란 토레스, 페리시치, 헐크, 홀란
+</div>
+
+<div class="player-row">
+<strong>14위 — 1도움</strong><br>
+가브리엘 치아구, 기튼스, 누네스, 대니얼, 레앙, 레인더러스, 로버트슨, 루이스 수아레스, 루크 쇼, 마네, 마르무리, 마샬, 마스탄투오노, 만다바, 맥알리스터, 베라티, 보니페이스, 부아디, 블라호비치, 사비뉴, 아다마 트라오레, 앙제 요안 보니, 오바메양, 완델손, 완비사카, 이케르 발데스, 찰하놀루, 치도 오비 마틴, 캐시, 케르케즈, 콜윌, 쿠냐, 쿠티뉴, 퀴크치, 크라마리치, 클라선, 틸레망스, 파비안 루이스, 호날두 JR, 히울만
+</div>
+
+</div>
+
+</section>
+
+
+<!-- 선방 -->
+
+<section id="saves" class="section">
+
+<div class="card">
+
+<h2>🧤 20라운드 전체 선방 순위</h2>
+
+<div class="player-row"><strong>1위</strong> 루닌 — 112선방</div>
+<div class="player-row"><strong>2위</strong> 두브라브카 — 109선방</div>
+<div class="player-row"><strong>3위</strong> 트루빈 — 107선방</div>
+<div class="player-row"><strong>4위</strong> 사포노프, 돈나룸마, 픽포드 — 104선방</div>
+<div class="player-row"><strong>5위</strong> 조현우 — 98선방</div>
+<div class="player-row"><strong>6위</strong> 슈체스니 — 97선방</div>
+<div class="player-row"><strong>7위</strong> 루프스 — 95선방</div>
+<div class="player-row"><strong>8위</strong> 주안 가르시아 — 94선방</div>
+<div class="player-row"><strong>9위</strong> 부누 — 87선방</div>
+<div class="player-row"><strong>10위</strong> 테어슈테겐 — 66선방</div>
+<div class="player-row"><strong>11위</strong> 케파 — 47선방</div>
+<div class="player-row"><strong>12위</strong> 리바코비치 — 12선방</div>
+<div class="player-row"><strong>13위</strong> 펜더러스, 코바치 — 11선방</div>
+<div class="player-row"><strong>14위</strong> 보지냐 — 6선방</div>
+<div class="player-row"><strong>15위</strong> 스즈키 — 4선방</div>
+<div class="player-row"><strong>16위</strong> 에데르송 — 3선방</div>
+<div class="player-row"><strong>17위</strong> 마마르다슈빌리 — 2선방</div>
+<div class="player-row"><strong>18위</strong> 팬더슨 — 1선방</div>
+
+</div>
+
+</section>
+
+
+<!-- LF CUP -->
+
+<section id="lfcup" class="section">
+
+<div class="card">
+
+<h2>🏆 LF CUP</h2>
+
+<p><strong>16강 · 단판 승부</strong></p>
+
+<div class="cup-grid">
+
+<div class="match">
+<div class="match-number">① 16강</div>
+<div class="team">FC ORCHESTRA</div>
+<div class="vs">🆚</div>
+<div class="team">머지사이드 유나이티드</div>
+</div>
+
+<div class="match">
+<div class="match-number">② 16강</div>
+<div class="team">문덜랜드 AFC</div>
+<div class="vs">🆚</div>
+<div class="team">수원화성골든윈드</div>
+</div>
+
+<div class="match">
+<div class="match-number">③ 16강</div>
+<div class="team">노스</div>
+<div class="vs">🆚</div>
+<div class="team">스파이더맨 FC</div>
+<div class="auto">스파이더맨 FC 자동진출</div>
+</div>
+
+<div class="match">
+<div class="match-number">④ 16강</div>
+<div class="team">Villans FC</div>
+<div class="vs">🆚</div>
+<div class="team">훔바 유나이티드</div>
+<div class="auto">Villans FC 자동진출</div>
+</div>
+
+<div class="match">
+<div class="match-number">⑤ 16강</div>
+<div class="team">진석FC</div>
+<div class="vs">🆚</div>
+<div class="team">둠스데이 FC</div>
+</div>
+
+<div class="match">
+<div class="match-number">⑥ 16강</div>
+<div class="team">카치리요</div>
+<div class="vs">🆚</div>
+<div class="team">Only Reds FC</div>
+</div>
+
+<div class="match">
+<div class="match-number">⑦ 16강</div>
+<div class="team">서쪽햄 유나이티드</div>
+<div class="vs">🆚</div>
+<div class="team">데클마 FC</div>
+</div>
+
+<div class="match">
+<div class="match-number">⑧ 16강</div>
+<div class="team">산초HD</div>
+<div class="vs">🆚</div>
+<div class="team">FC 팝팝</div>
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+</div>
+
+<footer>
+Fantasy League Championship
+</footer>
+
+<script>
+
+function showSection(sectionId, button) {
+
+  document.querySelectorAll('.section').forEach(section => {
+    section.classList.remove('active');
+  });
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.classList.remove('active');
+  });
+
+  document.getElementById(sectionId).classList.add('active');
+
+  button.classList.add('active');
+
+}
+
+</script>
+
+</body>
+</html>
